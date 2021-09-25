@@ -6,13 +6,10 @@
 #include "gfx/rect.hpp"
 #include "gfx/size.hpp"
 
-#include "SkCanvas.h"
 #include "SkImage.h"
 #include "SkPaint.h"
 #include "SkTextBlob.h"
 #include "SkTextUtils.h"
-
-#include "src/core/SkGlyphRun.h"
 
 namespace os
 {  
@@ -146,10 +143,6 @@ namespace os
    void Surface::drawString(const std::string& str, float x, float y,
                             const SkPaint& paint, const SkFont& font)
    {
-      static SkGlyphRunBuilder glyphBuilder;
-      // auto glyphList = glyphBuilder.textToGlyphRunList(font, paint, str.c_str(), str.size(), {x, y});
-      SkTextBlob::Make
-
       m_canvas->drawString(str.c_str(), x, y, font, paint);
    }
 
