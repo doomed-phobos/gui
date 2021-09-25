@@ -11,7 +11,10 @@ namespace base
    public:
       Exception();
       Exception(const std::string& msg);
-      Exception(const char* format, ...);
+      template<typename... Args>
+      Exception(const char* format, Args&&... args) {
+         init(format_to_string(format, std::forward<Args>(args)...));
+      }
 
       char const* what() const noexcept override;
    private:

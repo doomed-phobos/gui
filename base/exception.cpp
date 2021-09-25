@@ -8,27 +8,14 @@
 
 namespace base
 {
-   Exception::Exception() :
-      std::exception()
+   Exception::Exception()
    {
       init(std::string());
    } 
 
-   Exception::Exception(const std::string& msg) :
-      std::exception()
+   Exception::Exception(const std::string& msg)
    {
       init(msg);
-   }
-
-   Exception::Exception(const char* format, ...) :
-      std::exception()
-   {
-      std::va_list ap;
-      va_start(ap, format);
-      std::string res = format_to_string(format, ap);
-      va_end(ap);
-
-      init(res);
    }
 
    char const* Exception::what() const noexcept
@@ -56,7 +43,7 @@ namespace base
          strMsgbuf = NULL;
 
       if(strMsgbuf) {
-         std::wstring dbgmsg = format_to_string(L"Last Error: %d - %s", dwLastError, strMsgbuf);
+         std::wstring dbgmsg = format_to_string(L"Last Error: {} - {}", dwLastError, strMsgbuf);
          OutputDebugStringW(dbgmsg.c_str());
          LocalFree(strMsgbuf);
       }
