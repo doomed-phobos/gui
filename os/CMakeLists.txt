@@ -1,19 +1,25 @@
-include(add_executable)
-
 add_library(os-lib STATIC
    # Skia
-   skia/skia_convert.h
-   skia/skia_surface.cpp
+   skia/skia_convert.hpp
 
-   win/win_keys.cpp
-   style.cpp
-   styles.cpp
-   display.cpp
-   system.cpp)
+   event.hpp
+   fwd.hpp
+   window.hpp
+   surface.cpp
+   window_base.cpp
+   system.cpp
+   win/win_convert.hpp
+   win/win_window.cpp
+   win/win_keys.cpp)
+
+set(GUI_OS_PLATFORM_LIBS)
+
+if(WIN32)
+   list(APPEND GUI_OS_PLATFORM_LIBS comctl32)
+endif()
 
 target_include_directories(os-lib PUBLIC ${CMAKE_SOURCE_DIR})
-target_compile_definitions(os-lib PUBLIC -DNOMINMAX)
-target_link_libraries(os-lib base-lib skia)
+target_link_libraries(os-lib skia gfx-lib base-lib ${GUI_OS_PLATFORM_LIBS})
 
-__add_executable(os-test main.cpp)
-target_link_libraries(os-test os-lib gfx-lib)
+add_executable(os-test test.cpp)
+target_link_libraries(os-test os-lib)
