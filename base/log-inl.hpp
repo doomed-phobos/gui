@@ -1,11 +1,10 @@
 #include "base/mutex.hpp"
-#include "spdlog/spdlog.h"
-#include "spdlog/async.h"
-#include "spdlog/sinks/stdout_sinks-inl.h"
 
-#include <iostream>
+#include <spdlog/spdlog.h>
+#include <spdlog/async.h>
+#include <spdlog/sinks/stdout_sinks-inl.h>
 
-// Se ponde inline porque permite multiples definiciones
+// Se pone inline porque permite multiples definiciones
 namespace base
 {
    namespace priv
@@ -22,14 +21,15 @@ namespace base
 
    inline LogSystem::LogSystem()
    {
-      spdlog::set_pattern("[%l %d/%m/%Y %r]: %v");
-      spdlog::set_default_logger(
-         spdlog::create_async<spdlog::sinks::stdout_sink<priv::console_mutex>>("gui_log"));
+      spdlog::create<spdlog::sinks::stderr_sink<priv::console_mutex>>("gui_log");
+      spdlog::get("gui_log")->set_pattern("[%l %d/%m/%Y %r]: %v");
+      spdlog::get("gui_log")->set_error_handler([this](const std::string& msg) {
+         this->log(kError_Level, "(spdlog) {}", msg);
+      });
    }
 
    inline LogSystem::~LogSystem()
    {
-      spdlog::shutdown();
    }
 
    inline void LogSystem::log(Level level, const char* message)
@@ -40,7 +40,7 @@ namespace base
    template<typename... Args>
    inline void LogSystem::log(Level level, const char* format, Args&&... args)
    {
-      spdlog::log((spdlog::level::level_enum)level, format, std::forward<Args>(args)...);
+      spdlog::get("gui_log")->log((spdlog::level::level_enum)level, format, std::forward<Args>(args)...);
    }
 
    inline LogSystem* LogSystem::GetInstance()
