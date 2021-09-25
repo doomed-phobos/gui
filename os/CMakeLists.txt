@@ -20,6 +20,3 @@ endif()
 
 target_include_directories(os-lib PUBLIC ${CMAKE_SOURCE_DIR})
 target_link_libraries(os-lib skia gfx-lib base-lib ${GUI_OS_PLATFORM_LIBS})
-
-add_executable(os-test test.cpp)
-target_link_libraries(os-test os-lib)
