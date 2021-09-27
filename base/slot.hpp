@@ -1,16 +1,5 @@
-//////////////////////////////////////////////////////////////////////
-/// Copyright (c) 2021 surreal-Ceres
-/// 
-/// Este archivo debe ser usado junto con "signal.h"
-/// 
-/// Esto es un archivo creado por mí
-/// @code
-/// Codigo de ejemplo aqui
-/// @endcode
-//////////////////////////////////////////////////////////////////////
-
-#ifndef _SLOT_HPP
-#define _SLOT_HPP
+#ifndef _BASE_SLOT_HPP
+#define _BASE_SLOT_HPP
 #include "base/base.hpp"
 
 #include <functional>
@@ -30,11 +19,9 @@ namespace base
       };
    } // namespace priv
 
-   /// @class Una ranura que debe contener el formato tipo_de_funcion(argumentos...)
    template<typename Callable>
    class Slot {};
 
-   // Una ranura cuya función
    template<typename R, typename... Args>
    class Slot<R(Args...)> : public priv::Slot_base
    {

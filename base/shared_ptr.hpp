@@ -1,9 +1,7 @@
 #ifndef _BASE_SHARED_PTR_HPP
 #define _BASE_SHARED_PTR_HPP
-#include "base/types.hpp"
+#include "base/base.hpp"
 #include "base/debug.hpp"
-
-#include <type_traits>
 
 namespace base
 {
@@ -41,16 +39,14 @@ namespace base
       SharedPtr(std::nullptr_t) : m_ptr(nullptr) {}
       explicit SharedPtr(T* ptr) : m_ptr(ptr) {}
       
-      template<typename U,
-         typename = typename std::enable_if_t<std::is_convertible_v<U*, T*>>>
+      template<typename U, BASE_ENABLE_IF(std::is_convertible_v<U*, T*>)>
       SharedPtr(const SharedPtr<U>& that) : m_ptr(safe_ref(that.get())) {}
       SharedPtr(const SharedPtr& sp) : 
          m_ptr(safe_ref(sp.get())) {}
 
       SharedPtr(SharedPtr&& sp) :
          m_ptr(sp.release()) {}
-      template<typename U,
-         typename = typename std::enable_if_t<std::is_convertible_v<U*, T*>>>
+      template<typename U, BASE_ENABLE_IF(std::is_convertible_v<U*, T*>)>
       SharedPtr(SharedPtr<U>&& that) : m_ptr(that.release()) {}
 
       ~SharedPtr() {

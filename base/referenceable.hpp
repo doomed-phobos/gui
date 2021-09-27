@@ -1,6 +1,6 @@
 #ifndef _BASE_REFERENCEABLE_HPP
 #define _BASE_REFERENCEABLE_HPP
-#include "base/types.hpp"
+#include "base/base.hpp"
 #include "base/debug.hpp"
 
 #include <atomic>
@@ -26,13 +26,16 @@ namespace base
             delete this;
          }
       }
+   private:
+      template<typename>
+      friend class SharedPtr;
+
+      DISALLOW_COPYING(Referenceable);
+      DISALLOW_MOVING(Referenceable);
 
       int32_t use_count() const {
          return m_refCnt.load(std::memory_order_relaxed);
       }
-   private:
-      DISALLOW_COPYING(Referenceable);
-      DISALLOW_MOVING(Referenceable);
 
       mutable std::atomic_int32_t m_refCnt;
    };

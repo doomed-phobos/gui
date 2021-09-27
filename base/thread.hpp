@@ -1,6 +1,6 @@
 #ifndef _BASE_THREAD_H
 #define _BASE_THREAD_H
-#include "base/types.hpp"
+#include "base/base.hpp"
 
 #include <tuple>
 #include <utility>

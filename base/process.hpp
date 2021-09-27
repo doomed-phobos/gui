@@ -1,6 +1,6 @@
 #ifndef _BASE_PROCESS_HPP
 #define _BASE_PROCESS_HPP
-#include "base/types.hpp"
+#include <cstdint>
 
 namespace base
 {

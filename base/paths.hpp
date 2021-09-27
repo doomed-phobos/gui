@@ -5,6 +5,6 @@
 
 namespace base
 {
-   typedef std::vector<std::string> paths;
+   typedef std::vector<std::string> paths_t;
 } // namespace base
 #endif

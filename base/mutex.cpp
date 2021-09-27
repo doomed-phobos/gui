@@ -3,7 +3,7 @@
 #ifdef CORE_WINDOWS
 #  include "base/mutex_win32.hpp"
 #else
-#  error "Implementar esto"
+#  error "Don't exits mutex for non Windows"
 #endif
 
 namespace base

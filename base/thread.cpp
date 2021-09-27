@@ -31,7 +31,7 @@ namespace base
 
       (*fn)();
 
-      delete fn;  
+      delete fn;
    }
 
    Thread::Thread() :

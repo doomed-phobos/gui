@@ -1,6 +1,6 @@
 #ifndef _BASE_MUTEX_H
 #define _BASE_MUTEX_H
-#include "base/types.hpp"
+#include "base/base.hpp"
 
 namespace base
 {

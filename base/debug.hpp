@@ -27,7 +27,7 @@
 
    #define TRACE base::priv::base_trace
 #else
-   #define ASSERT(cond) ((void)0)
+   #define ASSERT(cond)
    #define TRACE(...)
 #endif
 

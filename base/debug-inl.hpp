@@ -24,7 +24,7 @@ namespace base::priv
 
       return ret == 1 ? true : false;
       #else
-      std::cerr << format_to_string("Assertion failed in %s %d: %s", file, lineNum, condition) << std::endl;
+      std::cerr << format_to_string("Assertion failed in {} {}: {}", file, lineNum, condition) << std::endl;
       std::abort();
       return true;
       #endif
