@@ -2,6 +2,7 @@
 #define _OS_SYSTEM_HPP
 #include "os/fwd.hpp"
 #include "os/ref.hpp"
+#include "gfx/fwd.hpp"
 
 namespace os
 {
@@ -16,14 +17,15 @@ namespace os
       void waitEvents();
       void pollEvents();
 
-      void setDefaultWindow(Window* window);
+      void setDefaultWindow(WindowBase* window);
       /// Retorna un puntero a defaultWindow
-      Window* defaultWindow() const;
-
+      WindowBase* defaultWindow() const;
       /// Crea un puntero crudo envuelto en un puntero inteligente de un Surface
-      SurfacePtr createRGBASurface(int width, int height);
-      /// Carga una imagen como Surface
-      SurfacePtr loadSurface(const char* filename);
+      SurfacePtr createRGBASurface(int width, int height) const;
+      /// Carga un Surface a partir de una imagen
+      SurfacePtr loadSurface(const char* filename) const;
+      /// Obtiene el tamaño del área de trabajo del monitor más cercano a la ventana
+      gfx::Size getWorkareaSizeFromWindow(WindowBase* window) const;
 
       /// Obtener la instancia del sistema
       /// @return Devuelve el puntero que apunta al sistema creado por create_system().
@@ -33,7 +35,7 @@ namespace os
       friend SystemPtr create_system();
       System();
 
-      Window* m_defaultWindow;
+      WindowBase* m_defaultWindow;
    };
 
    /// Crea un nuevo sistema. 
