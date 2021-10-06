@@ -1,36 +1,25 @@
-#include "base/mutex.hpp"
+#include "base/scoped_lock.hpp"
+#include "base/string.hpp"
 
-#include <spdlog/spdlog.h>
-#include <spdlog/async.h>
-#include <spdlog/sinks/stdout_sinks-inl.h>
+#include <iostream>
+#include <fmt/chrono.h>
 
 // Se pone inline porque permite multiples definiciones
 namespace base
 {
    namespace priv
    {
-      struct console_mutex
+      static constexpr inline const char* loglevel_to_cstr(LogSystem::Level level)
       {
-         using mutex_t = Mutex;
-         static mutex_t& mutex() {
-            static mutex_t s_mutex;
-            return s_mutex;
+         switch(level) {
+            case LogSystem::kInfo_Level: return "Info";
+            case LogSystem::kError_Level: return "Error";
+            case LogSystem::kCritical_Level: return "Critical";
+            case LogSystem::kWarning_Level: return "Warning";
+            default: return "Unknown Level";
          }
-      };
+      }
    } // namespace priv
-
-   inline LogSystem::LogSystem()
-   {
-      spdlog::create<spdlog::sinks::stderr_sink<priv::console_mutex>>("gui_log");
-      spdlog::get("gui_log")->set_pattern("[%l %d/%m/%Y %r]: %v");
-      spdlog::get("gui_log")->set_error_handler([this](const std::string& msg) {
-         this->log(kError_Level, "(spdlog) {}", msg);
-      });
-   }
-
-   inline LogSystem::~LogSystem()
-   {
-   }
 
    inline void LogSystem::log(Level level, const char* message)
    {
@@ -40,17 +29,16 @@ namespace base
    template<typename... Args>
    inline void LogSystem::log(Level level, const char* format, Args&&... args)
    {
-      spdlog::get("gui_log")->log((spdlog::level::level_enum)level, format, std::forward<Args>(args)...);
-   }
-
-   inline LogSystem* LogSystem::GetInstance()
-   {
-      static LogSystem instance;
-      return &instance;
+      static Mutex s_mutex;
+      ScopedLock lock(s_mutex);
+      std::cerr << format_to_string("[{} {:%d/%m/%Y %r}]: {}",
+         priv::loglevel_to_cstr(level),
+         fmt::localtime(std::time(nullptr)),
+         format_to_string(format, std::forward<Args>(args)...)) << std::endl;
    }
 } // namespace base
 
-#define LOG_INFO(...) base::LogSystem::GetInstance()->log(base::LogSystem::kInfo_Level, __VA_ARGS__)
-#define LOG_WARNING(...) base::LogSystem::GetInstance()->log(base::LogSystem::kWarning_Level, __VA_ARGS__)
-#define LOG_ERROR(...) base::LogSystem::GetInstance()->log(base::LogSystem::kError_Level, __VA_ARGS__)
-#define LOG_CRITICAL(...) base::LogSystem::GetInstance()->log(base::LogSystem::kCritical_Level, __VA_ARGS__)
+#define LOG_INFO(...) base::LogSystem::log(base::LogSystem::kInfo_Level, __VA_ARGS__)
+#define LOG_WARNING(...) base::LogSystem::log(base::LogSystem::kWarning_Level, __VA_ARGS__)
+#define LOG_ERROR(...) base::LogSystem::log(base::LogSystem::kError_Level, __VA_ARGS__)
+#define LOG_CRITICAL(...) base::LogSystem::log(base::LogSystem::kCritical_Level, __VA_ARGS__)

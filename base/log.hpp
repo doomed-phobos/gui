@@ -1,5 +1,6 @@
 #ifndef _BASE_LOG_HPP
 #define _BASE_LOG_HPP
+#include "base/config.hpp"
 
 namespace base
 {
@@ -7,21 +8,15 @@ namespace base
    {
    public:
       enum Level {
-         kInfo_Level     = 2,
-         kWarning_Level  = 3,
-         kError_Level    = 4,
-         kCritical_Level = 5
+         kInfo_Level,
+         kWarning_Level,
+         kError_Level,
+         kCritical_Level
       };
 
-      ~LogSystem();
-      
-      void log(Level level, const char* message);
+      static void log(Level level, const char* message);
       template<typename... Args>
-      void log(Level level, const char* format, Args&&... args);
-
-      static LogSystem* GetInstance();
-   private:
-      LogSystem();
+      static void log(Level level, const char* format, Args&&... args);
    };
 } // namespace base
 
