@@ -1,4 +1,5 @@
 #include "base/string.hpp"
+#include "base/scoped_lock.hpp"
 
 #include <iostream>
 #include <vector>
@@ -33,6 +34,8 @@ namespace base::priv
    template<typename... Args>
    inline void base_trace(const char* format, Args&&... args)
    {
-      std::cerr << format_to_string(format, std::forward<Args>(args)...) << std::endl;
+      static Mutex s_mutex;
+      ScopedLock lock(s_mutex);
+      std::cerr << format_to_string(format, std::forward<Args>(args)...) << std::flush;
    }
 } // namespace base::priv
