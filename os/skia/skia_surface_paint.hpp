@@ -1,7 +1,6 @@
 #ifndef _OS_SKIA_SKIA_SURFACE_PAINT_HPP
 #define _OS_SKIA_SKIA_SURFACE_PAINT_HPP
 #include "os/surface.hpp"
-
 #include "base/debug.hpp"
 
 #include <windows.h>

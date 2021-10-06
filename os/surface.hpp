@@ -2,10 +2,16 @@
 #define _OS_SURFACE_HPP
 #include "os/ref.hpp"
 #include "os/fwd.hpp"
-#include "gfx/fwd.hpp"
 #include "os/text_align.hpp"
+#include "gfx/fwd.hpp"
+#include "gfx/point.hpp"
 
-#include "SkBitmap.h"
+#include <SkBitmap.h>
+
+class SkCanvas;
+class SkPath;
+class SkPaint;
+class SkFont;
 
 namespace os
 {
@@ -46,11 +52,11 @@ namespace os
       void drawRoundRect(const SkRect& rc,
                          const float rx, const float ry, const SkPaint& paint);
       void drawPath(const SkPath& path, const SkPaint& paint);
-      void drawString(const std::string& str, float x, float y,
-                      const SkPaint& paint, const SkFont& font);
-      // void drawString(const std::string& str, const SkPoint& position,
-                     //  const SkPaint& paint, const SkFont& font,
-                     //  const TextAlign align = kLeft_TextAlign);
+      void drawString(const std::string_view& str, float x, float y,
+                      const SkPaint& paint, const SkFont& font, const TextAlign& align = kLeft_TextAlign);
+      void drawString(const std::string_view& str, const SkPoint& position,
+                      const SkPaint& paint, const SkFont& font,
+                      const TextAlign& align = kLeft_TextAlign);
       
       void blitTo(Surface* dst, int srcX, int srcY,
                   int dstX, int dstY, int width, int height);
@@ -61,6 +67,7 @@ namespace os
       int height() const;
       gfx::Size size() const;
       gfx::Rect clipBounds() const;
+      gfx::Rect bounds() const;
    private:
       void build();
 

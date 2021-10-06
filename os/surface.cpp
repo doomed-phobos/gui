@@ -6,10 +6,10 @@
 #include "gfx/rect.hpp"
 #include "gfx/size.hpp"
 
-#include "SkImage.h"
-#include "SkPaint.h"
-#include "SkTextBlob.h"
-#include "SkTextUtils.h"
+#include <SkImage.h>
+#include <SkPaint.h>
+#include <SkTextBlob.h>
+#include <SkTextUtils.h>
 
 namespace os
 {  
@@ -140,10 +140,25 @@ namespace os
       m_canvas->drawPath(path, paint);
    }
 
-   void Surface::drawString(const std::string& str, float x, float y,
-                            const SkPaint& paint, const SkFont& font)
+   void Surface::drawString(const std::string_view& str, float x, float y,
+                            const SkPaint& paint, const SkFont& font, const TextAlign& align)
    {
-      m_canvas->drawString(str.c_str(), x, y, font, paint);
+      SkTextUtils::Draw(
+         m_canvas,
+         str.data(),
+         str.size(),
+         SkTextEncoding::kUTF8,
+         x, y,
+         font, paint,
+         to_skia(align)
+      );
+   }
+
+   void Surface::drawString(const std::string_view& str, const SkPoint& position,
+                            const SkPaint& paint, const SkFont& font,
+                            const TextAlign& align)
+   {
+      this->drawString(str, position.x(), position.y(), paint, font, align);
    }
 
    void Surface::blitTo(Surface* dst, int srcX, int srcY,
@@ -202,5 +217,10 @@ namespace os
          return gfx::Rect(rc.x(), rc.y(), rc.width(), rc.height());
       else
          return gfx::Rect();
+   }
+
+   gfx::Rect Surface::bounds() const
+   {
+      return gfx::Rect(0, 0, width(), height());
    }
 } // namespace os
