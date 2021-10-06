@@ -19,4 +19,4 @@ if(WIN32)
 endif()
 
 target_include_directories(os-lib PUBLIC ${CMAKE_SOURCE_DIR})
-target_link_libraries(os-lib skia gfx-lib base-lib ${GUI_OS_PLATFORM_LIBS})
+target_link_libraries(os-lib PUBLIC skia gfx-lib base-lib ${GUI_OS_PLATFORM_LIBS})
