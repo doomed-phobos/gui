@@ -45,14 +45,9 @@ namespace os
       gfx::Size newSize;
    };
 
-   struct ChangedBoundsEvent
-   {
-      gfx::Rect newBounds;
-   };
-
    struct DropFilesEvent
    {
-      base::paths files;
+      base::paths_t files;
    };
 } // namespace os
 #endif
