@@ -5,7 +5,7 @@ project(gui CXX C)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-option(GUI_WITH_SANDBOX "Enable GUI sandbox" ON)
+option(GUI_WITH_SANDBOX "Enable GUI sandbox?" ON)
 
 if(MSVC)
    set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
@@ -15,7 +15,8 @@ include(FindSkia)
 
 add_subdirectory(third_party)
 add_subdirectory(base)
-# add_subdirectory(os)
+add_subdirectory(gfx)
+add_subdirectory(os)
 
 if(GUI_WITH_SANDBOX)
    add_subdirectory(sandbox)
