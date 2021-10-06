@@ -4,14 +4,10 @@
 // Detect config
 #ifdef _DEBUG
 #  define CORE_DEBUG
-#else
-#  define CORE_RELEASE
 #endif
 
 #ifdef _MSC_VER
-#  define CORE_MSC_VER _MSC_VER
-#else
-#  define CORE_MSC_VER 0
+#  define CORE_MSC
 #endif
 
 // Detect os
@@ -27,9 +23,11 @@
 #if defined(CORE_WINDOWS)
 #  define NOMINMAX
 #  define UNICODE
-#  if CORE_MSC_VER
+#endif
+
+// Compiler config
+#ifdef CORE_MSC
 #    pragma warning(disable:4996)
-#  endif
 #endif
 
 #if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
