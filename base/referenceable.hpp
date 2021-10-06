@@ -22,9 +22,8 @@ namespace base
 
       void unref() const {
          ASSERT(use_count() > 0);
-         if(m_refCnt.fetch_add(-1, std::memory_order_acq_rel) == 1) {
+         if(m_refCnt.fetch_add(-1, std::memory_order_acq_rel) == 1)
             delete this;
-         }
       }
    private:
       template<typename>
