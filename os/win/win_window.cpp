@@ -6,12 +6,9 @@
 #include "os/win/win_keys.hpp"
 #include "os/surface.hpp"
 #include "base/exception.hpp"
-#include "base/math.hpp"
+#include "base/base.hpp"
 #include "base/debug.hpp"
 #include "base/log.hpp"
-
-#include <iostream>
-#include "gfx/size_io.hpp"
 
 #include <algorithm>
 #include <windowsx.h>
@@ -43,7 +40,7 @@ namespace os::priv
       static constexpr const wchar_t* strWndClass = L"gui.window";
    };
 
-   WinWindow::WinWindow(const char* text, WindowStyle style) :
+   WinWindow::WinWindow(WinWindow* parent, const char* text, WindowStyle style) :
       m_handle(nullptr),
       m_hasMouse(false),
       m_isCreated(false),
@@ -51,27 +48,21 @@ namespace os::priv
    {
       WindowClass::Register();
 
-      m_handle = CreateWindowEx(
-         WS_EX_APPWINDOW | WS_EX_ACCEPTFILES,
-         WindowClass::strWndClass,
-         L"",
-         WS_OVERLAPPEDWINDOW,
-         CW_USEDEFAULT, CW_USEDEFAULT,
-         CW_USEDEFAULT, CW_USEDEFAULT,
-         nullptr,
-         nullptr,
-         GetModuleHandle(nullptr),
-         reinterpret_cast<LPVOID>(this)
-      );
+      m_handle = createHWND(parent, style);
 
       if(!m_handle)
-         throw base::Exception("Error al crear ventana");
+         throw base::Exception("Error to create window");
       
       SetWindowLongPtr(m_handle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
       m_isCreated = true;
 
       this->setText(text);
-      this->setNativeCursor(NativeCursor::kArrow);
+      this->setNativeCursor(NativeCursor::kDefault);
+   }
+
+   WinWindow::WinWindow(const char* text, WindowStyle style) :
+      WinWindow(nullptr, text, style)
+   {
    }
 
    WinWindow::~WinWindow()
@@ -79,6 +70,40 @@ namespace os::priv
       delete m_surface;
       if(m_handle)
          DestroyWindow(m_handle);
+   }
+
+   HWND WinWindow::createHWND(WinWindow* parent, WindowStyle style)
+   {
+      auto hasStyle = [style](WindowStyle s) -> bool {
+         return ((style & s) == s);
+      };
+
+      DWORD dwExStyle = WS_EX_ACCEPTFILES;
+      if(hasStyle(kFloating_WindowStyle)) {
+         dwExStyle |= WS_EX_TOOLWINDOW;
+      } else {
+         dwExStyle |= WS_EX_APPWINDOW;
+      } 
+
+      DWORD dwStyle = parent ? WS_CHILD : 0;
+      if(hasStyle(kTitleBar_WindowStyle))    dwStyle |= WS_OVERLAPPED | WS_SYSMENU | WS_CAPTION;
+      if(hasStyle(kMinimizable_WindowStyle)) dwStyle |= WS_SYSMENU | WS_MINIMIZEBOX;
+      if(hasStyle(kMaximizable_WindowStyle)) dwStyle |= WS_MAXIMIZEBOX;
+      if(hasStyle(kResize_WindowStyle))      dwStyle |= WS_THICKFRAME;
+      if(hasStyle(kPopup_WindowStyle))       dwStyle |= WS_POPUP;
+
+      return CreateWindowEx(
+         dwExStyle,
+         WindowClass::strWndClass,
+         L"",
+         dwStyle,
+         CW_USEDEFAULT, CW_USEDEFAULT,
+         CW_USEDEFAULT, CW_USEDEFAULT,
+         parent ? (HWND)parent->handle() : nullptr,
+         nullptr,
+         GetModuleHandle(nullptr),
+         reinterpret_cast<LPVOID>(this)
+      );
    }
 
    void WinWindow::setText(const char* text)
@@ -110,39 +135,38 @@ namespace os::priv
       m_hCursor = hCursor;
    }
 
-   void WinWindow::setBounds(int x, int y, int w, int h)
+   void WinWindow::internalSetBounds(int x, int y, int w, int h)
    {
-      w = std::max(w - (w % this->scale()), 8*this->scale());
-      h = std::max(h - (h % this->scale()), 8*this->scale());
-      gfx::Size newSize = this->calculateWindowSizeFromClient(w, h);
-
-      MoveWindow(m_handle, x, y,
-         newSize.w,
-         newSize.h, TRUE);
+      // TODO: Debe estar anclado a la escala por medio de WM_SIZING, luego enviar mensaje a onResize
+      RECT rc{x, y, x+w, y+h};
+      AdjustWindowRectEx(&rc, GetWindowStyle(m_handle), FALSE, GetWindowExStyle(m_handle));
+      gfx::Size clampedSize = getClampedSizeFromRECT(rc);
+      SetWindowPos(m_handle, NULL,
+         x, y,
+         clampedSize.w, clampedSize.h,
+         SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOZORDER);
    }
 
-   void WinWindow::onSetScale()
+   void WinWindow::internalSetScale()
    {
       {
          RECT rc;
          GetWindowRect(m_handle, &rc);
-         SendMessage(m_handle, WM_SIZING, 0, (LPARAM)&rc);
-         SetWindowPos(m_handle, nullptr,
-                        rc.left, rc.top,
-                        rc.right - rc.left,
-                        rc.bottom - rc.top,
-                        SWP_NOZORDER | SWP_NOACTIVATE);
+         gfx::Size clampedSize = getClampedSizeFromRECT(rc);
+         SetWindowPos(m_handle, NULL,
+            rc.left, rc.top,
+            clampedSize.w, clampedSize.h,
+            SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOZORDER);
       }
-
       ResizeEvent ev;
-      ev.newSize = m_clientSize;
+      ev.newSize = size();
       onResize(ev);
    }
 
-   void WinWindow::setVisible(bool state)
+   void WinWindow::setVisible(WindowVisibleMode mode)
    {
-      if(state) {
-         ShowWindow(m_handle, SW_SHOWDEFAULT);
+      if(mode != WindowVisibleMode::kHide) {
+         ShowWindow(m_handle, mode == WindowVisibleMode::kShowAndFocus ? SW_SHOWNORMAL : SW_SHOWNOACTIVATE);
          UpdateWindow(m_handle);
       } else {
          ShowWindow(m_handle, SW_HIDE);
@@ -171,6 +195,11 @@ namespace os::priv
       return IsWindowVisible(m_handle);
    }
 
+   bool WinWindow::isMaximized() const
+   {
+      return IsZoomed(m_handle);
+   }
+
    Surface& WinWindow::surface() const
    {
       return *m_surface;
@@ -181,27 +210,38 @@ namespace os::priv
       return reinterpret_cast<WindowBase::NativeHandle>(m_handle);
    }
 
-   gfx::Rect WinWindow::windowBounds() const
+   gfx::Rect WinWindow::bounds() const
    {
-      RECT rc;
-      GetWindowRect(m_handle, &rc);
+      RECT frame;
+      RECT client;
+      GetWindowRect(m_handle, &frame);
+      GetClientRect(m_handle, &client);
 
-      return from_win32(rc);
+      return gfx::Rect(gfx::PointF(frame.left, frame.top),
+         gfx::Size(client.right-client.left, client.bottom-client.top)/this->scale());
    }
 
-   gfx::Rect WinWindow::clientBounds() const
+   gfx::Point WinWindow::clientPointToScreenPoint(const gfx::Point& point) const
    {
-      RECT rc;
-      GetClientRect(m_handle, &rc);
+      POINT pt{point.x, point.y};
+      ClientToScreen(m_handle, &pt);
 
-      return from_win32(rc);
+      return gfx::Point(pt.x, pt.y);
+   }
+
+   gfx::Point WinWindow::screenPointToClientPoint(const gfx::Point& point) const
+   {
+      POINT pt{point.x, point.y};
+      ScreenToClient(m_handle, &pt);
+
+      return gfx::Point(pt.x, pt.y);
    }
 
    LRESULT CALLBACK WinWindow::ConfigureWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
    {
       WinWindow* win = nullptr;
 
-      if(msg == WM_CREATE) {
+      if(msg == WM_NCCREATE) {
          win = reinterpret_cast<WinWindow*>(
                reinterpret_cast<LPCREATESTRUCT>(lParam)->lpCreateParams);
 
@@ -225,7 +265,7 @@ namespace os::priv
    LRESULT WinWindow::wndProc(UINT msg, WPARAM wParam, LPARAM lParam)
    {
       switch(msg) {
-      case WM_CREATE:
+      case WM_NCCREATE:
          LOG_INFO("Creating WinWindow {}", (void*)m_handle);
          break;
       case WM_DESTROY:
@@ -321,8 +361,8 @@ namespace os::priv
 
          int w = std::max<int>(lpRect->right - lpRect->left, 0) - dx;
          int h = std::max<int>(lpRect->bottom - lpRect->top, 0) - dy;
-         w = (w - (w % this->scale())) + dx;
-         h = (h - (h % this->scale())) + dy;
+         w = std::max<int>(w - (w % this->scale()), 8*this->scale()) + dx;
+         h = std::max<int>(h - (h % this->scale()), 8*(int)(this->scale() != 1)*this->scale()) + dy;
 
          switch (wParam) {
          case WMSZ_LEFT:
@@ -354,18 +394,15 @@ namespace os::priv
             lpRect->bottom = lpRect->top + h;
             break;
          }
+
+         return TRUE;
       }
          break;
       case WM_SIZE: {
          if(m_isCreated) {
-            gfx::Size newSize = gfx::Size(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)) / this->scale();
-            m_clientSize = newSize;
-
             ResizeEvent ev;
-            ev.newSize = m_clientSize;
-            m_surface->createRGBA(newSize.w, newSize.h);
+            ev.newSize = gfx::Size(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))/this->scale();
             onResize(ev);
-            this->invalidate();
          }
       }
          break;
@@ -497,16 +534,6 @@ namespace os::priv
          onMouseWheel(ev);
       }
          break;
-      case WM_WINDOWPOSCHANGED: {
-         LPWINDOWPOS lpWindowPos = reinterpret_cast<LPWINDOWPOS>(lParam);
-         ChangedBoundsEvent ev;
-         ev.newBounds.x = lpWindowPos->x;
-         ev.newBounds.y = lpWindowPos->y;
-         ev.newBounds.w = lpWindowPos->cx;
-         ev.newBounds.h = lpWindowPos->cy;
-         onChangedBound(ev);
-      }
-         break;
       case WM_SETFOCUS:
          onActivate();
          break;
@@ -516,7 +543,7 @@ namespace os::priv
       case WM_DROPFILES: {
          HDROP hDrop = reinterpret_cast<HDROP>(wParam);
          DropFilesEvent ev;
-         base::paths& files = ev.files;
+         base::paths_t& files = ev.files;
          
          int count = DragQueryFileW(hDrop, INFINITE, NULL, 0);
          for(int index = 0; index < count; ++index) {
@@ -532,19 +559,25 @@ namespace os::priv
          onDropFiles(ev);
       }
          break;
+      #if 0 // maybe window dragging?
+      case WM_NCHITTEST: {
+         LRESULT result = CallWindowProc(DefWindowProc, m_handle, msg, wParam, lParam);
+         
+         if(result == HTCLIENT) result = HTCAPTION;
+
+         return result;
+      }
+         break;
+      #endif
       }
 
       return DefWindowProc(m_handle, msg, wParam, lParam);
    }
 
-   gfx::Size WinWindow::calculateWindowSizeFromClient(int w, int h)
+   void WinWindow::onResize(const os::ResizeEvent& ev)
    {
-      RECT rc{0, 0, w, h};
-      AdjustWindowRectEx(&rc,
-         GetWindowLong(m_handle, GWL_STYLE),
-         FALSE,
-         GetWindowLong(m_handle, GWL_EXSTYLE));
-      return gfx::Size(rc.right-rc.left, rc.bottom-rc.top);
+      m_surface->createRGBA(ev.newSize.w, ev.newSize.h);
+      this->invalidate();
    }
 
    void WinWindow::mouseEvent(LPARAM lParam, MouseEvent& ev)
@@ -552,5 +585,11 @@ namespace os::priv
       ev.modifiers = get_modifiers_from_last_win32_message();
       ev.position = gfx::Point(GET_X_LPARAM(lParam),
                                GET_Y_LPARAM(lParam)) / scale();
+   }
+
+   gfx::Size WinWindow::getClampedSizeFromRECT(const RECT& rc)
+   {
+      SendMessage(m_handle, WM_SIZING, WMSZ_BOTTOMRIGHT, (LPARAM)&rc);
+      return {rc.right-rc.left, rc.bottom-rc.top};
    }
 } // namespace os::priv
