@@ -10,6 +10,11 @@ namespace os
       m_scale(1)
    {}
 
+   void WindowBase::setBounds(int x, int y, int w, int h)
+   {
+      this->internalSetBounds(x, y, w*this->scale(), h*this->scale());
+   }
+
    void WindowBase::setBounds(const gfx::Rect& rc)
    {
       setBounds(rc.x, rc.y, rc.w, rc.h);
@@ -17,17 +22,17 @@ namespace os
 
    void WindowBase::setPosition(const gfx::Point& pt)
    {
-      setPosition(pt.x, pt.y);
+      setBounds(gfx::Rect(pt, size()));
    }
 
    void WindowBase::setPosition(int x, int y)
    {
-      setBounds(x, y, size().w, size().h);
+      setPosition(gfx::Point(x, y));
    }
 
    void WindowBase::setSize(const gfx::Size& sz)
    {
-      setBounds(position().x, position().y, sz.w, sz.h);
+      setBounds(gfx::Rect(position(), sz));
    }
 
    void WindowBase::setSize(int w, int h)
@@ -42,7 +47,7 @@ namespace os
       
       m_scale = scale;
 
-      this->onSetScale();
+      this->internalSetScale();
    }
 
    int WindowBase::scale() const
@@ -52,12 +57,12 @@ namespace os
 
    gfx::Point WindowBase::position() const
    {
-      return windowBounds().origin();
+      return bounds().origin();
    }
 
    gfx::Size WindowBase::size() const
    {
-      return clientBounds().size();
+      return bounds().size();
    }
 
    void WindowBase::onActivate()
@@ -68,11 +73,6 @@ namespace os
    void WindowBase::onDeactivate()
    {
       this->OnDeactivate();
-   }
-
-   void WindowBase::onChangedBound(const ChangedBoundsEvent& ev)
-   {
-      this->OnChangedBound(ev);
    }
 
    void WindowBase::onClose()
@@ -138,9 +138,5 @@ namespace os
    void WindowBase::onPaint(Surface& ev)
    {
       // Do nothing
-   }
-
-   void WindowBase::onSetScale()
-   {
    }
 } // namespace os

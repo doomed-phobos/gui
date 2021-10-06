@@ -1,19 +1,22 @@
 #ifndef _OS_WINDOW_BASE_HPP
 #define _OS_WINDOW_BASE_HPP
 #include "os/native_cursor.hpp"
+#include "os/window_visible_mode.hpp"
 #include "os/ref.hpp"
 #include "gfx/fwd.hpp"
 #include "base/signal.hpp"
+#include "gfx/rect.hpp"
 
 namespace os
 {
    struct MouseEvent;
    struct KeyEvent;
-   struct ChangedBoundsEvent;
    struct DropFilesEvent;
    struct ResizeEvent;
    class Surface;
 
+   /// Clase abstracta usada para crear ventanas para cada plataforma, y, por ende, usar os::WindowBase para
+   /// operaciones multiplataformas con ventanas 
    class WindowBase : public Referenceable
    {
    public:
@@ -24,7 +27,7 @@ namespace os
 
       virtual void setText(const char* text) = 0;
       virtual void setNativeCursor(NativeCursor cursor) = 0;
-      virtual void setBounds(int x, int y, int w, int h) = 0;
+      void setBounds(int x, int y, int w, int h);
       void setBounds(const gfx::Rect& rc);
       void setPosition(const gfx::Point& pt);
       void setPosition(int x, int y);
@@ -34,21 +37,27 @@ namespace os
       /// 
       /// @param scale Debe ser mayor a 0 para que surga efecto
       void setScale(int scale);
-      virtual void setVisible(bool state) = 0;
+      /// Describes how to show the window and show it
+      ///
+      /// @see WindowVisibleMode
+      virtual void setVisible(WindowVisibleMode mode) = 0;
       
       virtual void invalidate() = 0;
       virtual void captureMouse() = 0;
       virtual void releaseMouse() = 0;
 
       virtual bool isVisible() const = 0;
+      virtual bool isMaximized() const = 0;
       int scale() const;
       virtual Surface& surface() const = 0;
       virtual NativeHandle handle() const = 0;
-      virtual gfx::Rect windowBounds() const = 0;
-      virtual gfx::Rect clientBounds() const = 0;
+      /// Retorna el tamaño del cliente de la ventana
+      virtual gfx::Point clientPointToScreenPoint(const gfx::Point& point) const = 0;
+      virtual gfx::Point screenPointToClientPoint(const gfx::Point& point) const = 0;
+      virtual gfx::Rect bounds() const = 0;
       /// Retorna la posición con respecto a la ventana (incluye bordes)
       gfx::Point position() const;
-      /// Retorna el tamaño del cliente de la ventana
+      /// Retorna el tamaño de la ventana
       gfx::Size size() const;
 
       // ==================
@@ -56,7 +65,6 @@ namespace os
       // ==================
       base::Signal<void()> OnActivate;
       base::Signal<void()> OnDeactivate;
-      base::Signal<void(const ChangedBoundsEvent&)> OnChangedBound;
       base::Signal<void()> OnClose;
       base::Signal<void(const ResizeEvent&)> OnResize;
       base::Signal<void(const MouseEvent&)> OnMouseDown;
@@ -70,12 +78,12 @@ namespace os
       base::Signal<void(const KeyEvent&)> OnKeyUp;
       base::Signal<void(const DropFilesEvent&)> OnDropFiles;
    protected:
-      // ==================
-      // VIRTUAL EVENTS
-      // ==================
+      /// ==================
+      /// VIRTUAL EVENTS
+      /// ==================
+      /// Events signal their respective signals
       virtual void onActivate();
       virtual void onDeactivate();
-      virtual void onChangedBound(const ChangedBoundsEvent& ev);
       virtual void onClose();
       virtual void onResize(const ResizeEvent& ev);
       virtual void onMouseDown(const MouseEvent& ev);
@@ -90,10 +98,13 @@ namespace os
       virtual void onDropFiles(const DropFilesEvent& ev);
       virtual void onPaint(Surface& surface);
 
-      virtual void onSetScale();
+      virtual void internalSetScale() = 0;
+      virtual void internalSetBounds(int x, int y, int w, int h) = 0;
    private:
       int m_scale;
    };
+
+   typedef SharedPtr<WindowBase> WindowPtr;
 } // namespace os
 
 #endif
