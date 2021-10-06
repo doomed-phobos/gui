@@ -2,6 +2,8 @@
 #define _GFX_RECT_HPP
 #include "base/base.hpp"
 
+#include <SkRect.h>
+
 namespace gfx
 {
    template<typename T>
@@ -147,6 +149,30 @@ namespace gfx
             return RectT();
       }
 
+      operator SkRect() const {
+         return SkRect::MakeXYWH(
+            static_cast<float>(x),
+            static_cast<float>(y),
+            static_cast<float>(w),
+            static_cast<float>(h)
+         );
+      }
+
+      RectT operator*(const SizeT<T>& sz) {
+         return RectT(x, y, w*sz.w, h*sz.h);
+      }
+      RectT operator/(const SizeT<T>& sz) {
+         return RectT(x, y, w/sz.w, h/sz.h);
+      }
+
+      RectT& operator*=(const T& value) {
+         x *= value;
+         y *= value;
+         w *= value;
+         h *= value;
+
+         return *this;
+      }
       RectT& operator/=(const T& value) {
          x /= value;
          y /= value;
@@ -155,7 +181,6 @@ namespace gfx
          
          return *this;
       }
-
       RectT& operator|=(const RectT& rc) {
          return *this = createUnion(rc);
       }

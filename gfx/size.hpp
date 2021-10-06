@@ -2,6 +2,8 @@
 #define _GFX_SIZE_HPP
 #include "base/base.hpp"
 
+#include <SkSize.h>
+
 namespace gfx
 {
    template<typename T>
@@ -20,6 +22,13 @@ namespace gfx
       SizeT(const SizeT<U>& sz) : w(static_cast<T>(sz.w)),
                                   h(static_cast<T>(sz.h)) {}
       explicit SizeT(const PointT<T>& pt) : w(pt.x), h(pt.y) {}
+
+      operator SkSize() const {
+         return SkSize::Make(
+            static_cast<float>(w),
+            static_cast<float>(h)
+         );
+      }
 
       SizeT operator+(const T& value) const {
          return SizeT(w+value, h+value);

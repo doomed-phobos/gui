@@ -2,7 +2,7 @@
 #define _GFX_POINT_HPP
 #include "base/base.hpp"
 
-#include <cmath>
+#include <SkPoint.h>
 
 namespace gfx
 {
@@ -27,6 +27,12 @@ namespace gfx
       explicit PointT(const SizeT<U>& sz) : x(static_cast<T>(sz.w)),
                                             y(static_cast<T>(sz.h)) {}
 
+      operator SkPoint() const {
+         return SkPoint::Make(
+            static_cast<float>(x), 
+            static_cast<float>(y));
+      }
+
       PointT& operator+=(const PointT& pt) {
          x += pt.x;
          y += pt.y;
@@ -50,6 +56,13 @@ namespace gfx
       }
       PointT operator-(const T& value) const {
          return PointT(x - value, y - value);
+      }
+      
+      PointT operator*(const PointT& pt) const {
+         return PointT(x * pt.x, y * pt.y);
+      }
+      PointT operator*(const T& value) const {
+         return PointT(x * value, y * value);
       }
 
       PointT operator/(const T& value) const {
