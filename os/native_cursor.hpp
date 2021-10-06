@@ -18,7 +18,9 @@ namespace os
       kSizeNESW,
       kSizeWE,
       kSizeNS,
-      kSizeAll
+      kSizeAll,
+
+      kDefault = kArrow
    };
 } // namespace os
 
