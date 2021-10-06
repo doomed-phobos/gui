@@ -7,13 +7,14 @@ add_library(base-lib STATIC
    base.hpp
    debug-inl.hpp
    log-inl.hpp
-   files.cpp
    referenceable.hpp
+   scoped_lock.hpp
    shared_ptr.hpp
    signal.hpp
    slot.hpp
    string-inl.hpp
    exception.cpp
+   files.cpp
    mutex.cpp
    string.cpp
    thread.cpp
@@ -21,4 +22,4 @@ add_library(base-lib STATIC
 
 target_include_directories(base-lib PUBLIC ${CMAKE_SOURCE_DIR})
 target_precompile_headers(base-lib PUBLIC ${CMAKE_SOURCE_DIR}/core.hpp)
-target_link_libraries(base-lib spdlog fmt)
+target_link_libraries(base-lib fmt)
