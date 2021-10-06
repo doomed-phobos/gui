@@ -12,15 +12,12 @@ namespace os
    template<typename T>
    using SharedPtr = base::SharedPtr<T>;
 
-   #ifdef CORE_WINDOWS
-   namespace priv {class WinWindow;}
-   #endif
-   typedef priv::WinWindow Window;
+   class WindowBase;
    class Surface;
    class System;
    class FontManager;
 
-   typedef SharedPtr<Window> WindowPtr;
+   typedef SharedPtr<WindowBase> WindowPtr;
    typedef SharedPtr<System> SystemPtr;
    typedef SharedPtr<Surface> SurfacePtr;
 } // namespace os
