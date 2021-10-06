@@ -4,7 +4,6 @@
 #include "os/fwd.hpp"
 #include "os/text_align.hpp"
 #include "gfx/fwd.hpp"
-#include "gfx/point.hpp"
 
 #include <SkBitmap.h>
 
