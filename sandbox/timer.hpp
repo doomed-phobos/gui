@@ -14,7 +14,7 @@ namespace sandbox
 
       ~AutoTimer() {
          end = std::chrono::system_clock::now();
-         TRACE("Elapsed time: {}", std::chrono::duration<double>(end - beg).count());
+      TRACE("Elapsed time: {}\n", std::chrono::duration<double>(end - beg).count());
       }
    private:
       std::chrono::system_clock::time_point beg, end;
