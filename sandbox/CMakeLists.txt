@@ -9,5 +9,6 @@ sandbox_executable(tool_window LIBRARIES os-lib)
 sandbox_executable(simple_window LIBRARIES os-lib)
 sandbox_executable(hello_world LIBRARIES os-lib)
 sandbox_executable(panviewport LIBRARIES os-lib)
+sandbox_executable(allevents LIBRARIES os-lib)
 
 add_subdirectory(tests)

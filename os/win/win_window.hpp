@@ -33,8 +33,8 @@ namespace os
          virtual NativeHandle handle() const override;
          virtual gfx::Rect bounds() const override;
       protected:
-         virtual void internalSetScale();
-         virtual void internalSetBounds(int x, int y, int w, int h) override;
+         virtual void internal_setScale() override;
+         virtual void internal_setBounds(int x, int y, int w, int h) override;
          virtual void onResize(const os::ResizeEvent& ev);
       private:
          class WindowClass;
@@ -47,6 +47,7 @@ namespace os
 
          HWND m_handle;
          HCURSOR m_hCursor;
+         bool m_shadow : 1;
          bool m_hasMouse : 1;
          bool m_isCreated : 1;
          Surface* m_surface;

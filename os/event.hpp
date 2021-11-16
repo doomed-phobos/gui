@@ -17,7 +17,10 @@ namespace os
          kUnknownButton
       };
 
-      MouseEvent() : button(kNoneButton) {}
+      MouseEvent() : button(kNoneButton),
+                     modifiers(kKeyNoneModifier) {}
+
+      bool isPressingKeyModifiers(KeyModifiers mod) const {return modifiers & mod;}
 
       Button button;
       gfx::Point position;
@@ -32,6 +35,8 @@ namespace os
                    keyCode(kKeyNil),
                    unicodeChar(0),
                    isDeadKey(false) {}
+
+      bool isPressingKeyModifiers(KeyModifiers mods) const {return (modifiers & mods) == mods;}
 
       KeyModifiers modifiers;
       int repeat; // !<Cero significa que es la primera vez que se presionó

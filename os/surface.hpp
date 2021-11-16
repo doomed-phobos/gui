@@ -59,6 +59,7 @@ namespace os
       
       void blitTo(Surface* dst, int srcX, int srcY,
                   int dstX, int dstY, int width, int height);
+      void scrollTo(const SkRect& rc, int dx, int dy);
       void drawRGBASurface(const Surface* src, int dstX, int dstY);
 
       const SkBitmap& skBitmap() const;

@@ -11,7 +11,7 @@ public:
    ToolWindow(os::Window& win) :
       os::Window(&win, "", (os::WindowStyle)(os::kFloating_WindowStyle | os::kPopup_WindowStyle)) {}
 protected:
-   virtual void onPaint(os::Surface& s) {
+   void onPaint(os::Surface& s) override {
       // Simulate menu
       s.clear(SkColorSetRGB(32, 32, 32));
       SkPaint p;
@@ -22,6 +22,8 @@ protected:
       s.drawLine(SkPoint::Make(s.width(), 0.f), SkPoint::Make(0.f, s.height()), p);
       p.setColor(SK_ColorWHITE);
       s.drawString("(Menu)", gfx::Point(s.size()/2.f), p, SkFont(), os::kCenter_TextAlign);
+    
+      os::Window::onPaint(s);
    }
 };
 
@@ -31,8 +33,10 @@ public:
    MainWindow(const char* text) :
       os::Window(text) {}
 private:
-   virtual void onPaint(os::Surface& s) {
+   void onPaint(os::Surface& s) override {
       s.clear(SK_ColorRED);
+
+      os::Window::onPaint(s);
    }
 };
 
@@ -41,7 +45,7 @@ int main()
    os::SystemPtr sys(os::create_system());
    MainWindow win("Tool Window");
    ToolWindow tool(win);
-   tool.setSize(500, 600);
+   tool.setSize(100, 120);
    
    bool run = true;
    win.OnClose.connect([&]{run = false;});

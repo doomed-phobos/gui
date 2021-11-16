@@ -17,6 +17,9 @@ namespace gfx
 
       SizeT() : w(0), h(0) {}
       SizeT(const T& w, const T& h) : w(w), h(h) {}
+      SizeT(const SkSize& skSize) :
+         w(static_cast<T>(skSize.width())),
+         h(static_cast<T>(skSize.height())) {}
       template<typename U,
          BASE_ENABLE_IF(std::is_convertible_v<T, U>)>
       SizeT(const SizeT<U>& sz) : w(static_cast<T>(sz.w)),
@@ -70,6 +73,10 @@ namespace gfx
       }
       bool operator>(const T& value) const {
          return w > value && h > value;
+      }
+      bool operator==(const SizeT other) const {
+         return w == other.w &&
+                h == other.h;
       }
       bool operator>=(const SizeT& sz) const {
          return w >= sz.w &&

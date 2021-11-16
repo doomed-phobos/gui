@@ -59,6 +59,8 @@ namespace os
       gfx::Point position() const;
       /// Retorna el tamaño de la ventana
       gfx::Size size() const;
+      int width() const;
+      int height() const;
 
       // ==================
       // PUBLIC EVENTS
@@ -98,8 +100,8 @@ namespace os
       virtual void onDropFiles(const DropFilesEvent& ev);
       virtual void onPaint(Surface& surface);
 
-      virtual void internalSetScale() = 0;
-      virtual void internalSetBounds(int x, int y, int w, int h) = 0;
+      virtual void internal_setScale() = 0;
+      virtual void internal_setBounds(int x, int y, int w, int h) = 0;
    private:
       int m_scale;
    };

@@ -1,5 +1,6 @@
 #include "os/os.hpp"
 #include "gfx/point.hpp"
+#include "gfx/point_io.hpp"
 #include "gfx/rect.hpp"
 
 #include <SkPaint.h>
@@ -17,12 +18,56 @@ public:
    }
    
    bool isRunning() const {return m_running;}
+private:
+   typedef os::Window INHERITED;
 protected:
-   virtual void onClose() {m_running = false;}
-   virtual void onMouseMove(const os::MouseEvent& ev) {
-      
+   void onClose() override {
+      m_running = false;
+
+      INHERITED::onClose();
    }
-   virtual void onPaint(os::Surface& s) {
+   void onMouseDown(const os::MouseEvent& ev) override {
+      if(!m_hasCapture) {
+         m_hasCapture = true;
+         this->setNativeCursor(os::NativeCursor::kHand);
+         this->captureMouse();
+         m_capturePos = ev.position;
+         m_captureScroll = m_scroll;
+      }
+
+      INHERITED::onMouseDown(ev);
+   }
+
+   void onMouseUp(const os::MouseEvent& ev) override {
+      if(m_hasCapture) {
+         m_hasCapture = false;
+         this->setNativeCursor(os::NativeCursor::kDefault);
+         this->releaseMouse();
+      }
+
+      INHERITED::onMouseUp(ev);
+   }
+   
+   void onMouseMove(const os::MouseEvent& ev) override {
+      if(m_hasCapture) {
+         m_scroll = m_captureScroll + gfx::PointF(ev.position - m_capturePos);
+         this->invalidate();
+      }
+
+      INHERITED::onMouseMove(ev);
+   }
+
+   void onMouseWheel(const os::MouseEvent& ev) override {
+      if(ev.isPressingKeyModifiers(os::kKeyCtrlModifier)) {
+         int z = (ev.delta.x + ev.delta.y);
+         setZoom(gfx::PointF(ev.position), m_zoom - z/10.0);
+         this->invalidate();
+      }
+
+      INHERITED::onMouseWheel(ev);
+   }
+
+   void onPaint(os::Surface& s) override {
       s.clear(SkColorSetRGB(32, 32, 32));
       
       SkPaint p;
@@ -49,10 +94,19 @@ protected:
 
       {
          p.setStyle(SkPaint::kFill_Style);
-         // s.drawString(base::format_to_string("Scroll={:.2f}  Zoom={}"), {12.f, 12.f}, p, SkFont());
+         s.drawString(base::format_to_string("Scroll={:.2f}  Zoom={:.2f}", m_scroll,  m_zoom), {12.f, 12.f}, p, SkFont());
       }
+      
+      INHERITED::onPaint(s);
    }
 private:
+   void setZoom(const gfx::PointF& mousePos, double newZoom) {
+      double oldZoom = m_zoom;
+      m_zoom = base::clamp(newZoom, 0.01, 10.0);
+      
+      m_scroll = mousePos - (mousePos - m_scroll - center()) * m_zoom / oldZoom - center();
+   }
+
    gfx::PointF center() const {
       return gfx::PointF(size()/2.f);
    }

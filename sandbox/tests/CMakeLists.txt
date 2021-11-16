@@ -4,3 +4,4 @@ macro(add_test name ...)
 endmacro()
 
 add_test(base_shared_ptr LIBRARIES base-lib)
+add_test(gfx_clip LIBRARIES gfx-lib)

@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <windowsx.h>
+#include <dwmapi.h>
 #include <commctrl.h>
 
 namespace os::priv
@@ -44,6 +45,7 @@ namespace os::priv
       m_handle(nullptr),
       m_hasMouse(false),
       m_isCreated(false),
+      m_shadow(false),
       m_surface(new Surface(0, 0))
    {
       WindowClass::Register();
@@ -90,7 +92,7 @@ namespace os::priv
       if(hasStyle(kMinimizable_WindowStyle)) dwStyle |= WS_SYSMENU | WS_MINIMIZEBOX;
       if(hasStyle(kMaximizable_WindowStyle)) dwStyle |= WS_MAXIMIZEBOX;
       if(hasStyle(kResize_WindowStyle))      dwStyle |= WS_THICKFRAME;
-      if(hasStyle(kPopup_WindowStyle))       dwStyle |= WS_POPUP;
+      if(hasStyle(kPopup_WindowStyle))       dwStyle |= WS_POPUP, m_shadow = true;
 
       return CreateWindowEx(
          dwExStyle,
@@ -135,7 +137,7 @@ namespace os::priv
       m_hCursor = hCursor;
    }
 
-   void WinWindow::internalSetBounds(int x, int y, int w, int h)
+   void WinWindow::internal_setBounds(int x, int y, int w, int h)
    {
       // TODO: Debe estar anclado a la escala por medio de WM_SIZING, luego enviar mensaje a onResize
       RECT rc{x, y, x+w, y+h};
@@ -147,7 +149,7 @@ namespace os::priv
          SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOZORDER);
    }
 
-   void WinWindow::internalSetScale()
+   void WinWindow::internal_setScale()
    {
       {
          RECT rc;
@@ -265,11 +267,14 @@ namespace os::priv
    LRESULT WinWindow::wndProc(UINT msg, WPARAM wParam, LPARAM lParam)
    {
       switch(msg) {
-      case WM_NCCREATE:
-         LOG_INFO("Creating WinWindow {}", (void*)m_handle);
+      case WM_NCCREATE: {
+         LOG_INFO("Creating WinWindow({}) successfully", (void*)m_handle);
+
+         // TODO: If window is a popup, add shadown behind
+      }
          break;
       case WM_DESTROY:
-         LOG_INFO("Destroying WinWindow {}", (void*)m_handle);
+         LOG_INFO("Destroying WinWindow ({}) successfully", (void*)m_handle);
          break;
       case WM_SETCURSOR:
          if(LOWORD(lParam) == HTCLIENT) {
@@ -477,7 +482,7 @@ namespace os::priv
          ScreenToClient(m_handle, &pos);
 
          MouseEvent ev;
-         ev.position = gfx::Point(pos.x, pos.y) / this->scale();
+         mouseEvent(MAKELPARAM(pos.x, pos.y), ev);
 
          int z = GET_WHEEL_DELTA_WPARAM(wParam);
          if(base::abs(z) >= WHEEL_DELTA)
@@ -578,6 +583,8 @@ namespace os::priv
    {
       m_surface->createRGBA(ev.newSize.w, ev.newSize.h);
       this->invalidate();
+      
+      WindowBase::onResize(ev);
    }
 
    void WinWindow::mouseEvent(LPARAM lParam, MouseEvent& ev)

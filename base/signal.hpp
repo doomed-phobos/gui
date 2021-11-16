@@ -15,6 +15,8 @@ namespace base
       class Signal_base<R(Args...)>
       {
       public:
+         using callable_t = R(Args...);
+
          typedef Slot<R(Args...)> slot_t;
          typedef std::vector<slot_t*> list_t; // TODO: Reemplazar esto con lista segura
 

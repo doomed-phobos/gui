@@ -12,7 +12,7 @@ namespace os
 
    void WindowBase::setBounds(int x, int y, int w, int h)
    {
-      this->internalSetBounds(x, y, w*this->scale(), h*this->scale());
+      this->internal_setBounds(x, y, w*this->scale(), h*this->scale());
    }
 
    void WindowBase::setBounds(const gfx::Rect& rc)
@@ -47,7 +47,7 @@ namespace os
       
       m_scale = scale;
 
-      this->internalSetScale();
+      this->internal_setScale();
    }
 
    int WindowBase::scale() const
@@ -63,6 +63,16 @@ namespace os
    gfx::Size WindowBase::size() const
    {
       return bounds().size();
+   }
+
+   int WindowBase::width() const
+   {
+      return size().w;
+   }
+
+   int WindowBase::height() const
+   {
+      return size().h;
    }
 
    void WindowBase::onActivate()

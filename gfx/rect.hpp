@@ -45,6 +45,11 @@ namespace gfx
          w = rightBottom.x - leftTop.x;
          h = rightBottom.y - leftTop.y;
       }
+      RectT(const SkRect& skRect) :
+         x(static_cast<T>(skRect.x())),
+         y(static_cast<T>(skRect.y())),
+         w(static_cast<T>(skRect.width())),
+         h(static_cast<T>(skRect.height())) {}
 
       template<typename U,
                BASE_ENABLE_IF(std::is_convertible_v<T, U>)>
@@ -185,9 +190,13 @@ namespace gfx
          return *this = createUnion(rc);
       }
 
-      bool operator!=(const RectT& rc) const {
-         return x != rc.x || y != rc.y ||
-                w != rc.w || h != rc.h;
+      bool operator==(const RectT& other) const {
+         return x == other.x && y == other.y &&
+                w == other.w && h == other.h;
+      }
+      bool operator!=(const RectT& other) const {
+         return x != other.x || y != other.y ||
+                w != other.w || h != other.h;
       }
    };
 

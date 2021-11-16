@@ -15,7 +15,7 @@ add_library(os-lib STATIC
 set(GUI_OS_PLATFORM_LIBS)
 
 if(WIN32)
-   list(APPEND GUI_OS_PLATFORM_LIBS comctl32)
+   list(APPEND GUI_OS_PLATFORM_LIBS comctl32 dwmapi)
 endif()
 
 target_include_directories(os-lib PUBLIC ${CMAKE_SOURCE_DIR})

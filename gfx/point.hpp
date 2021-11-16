@@ -17,7 +17,10 @@ namespace gfx
 
       PointT() : x(0), y(0) {}
       PointT(const T& x, const T& y) : x(x), y(y) {}
-      
+      PointT(const SkPoint& skPoint) :
+         x(static_cast<T>(skPoint.x())),
+         y(static_cast<T>(skPoint.y())) {}
+
       template<typename U,
          BASE_ENABLE_IF(std::is_convertible_v<T, U>)>
       PointT(const PointT<U>& pt) : x(static_cast<T>(pt.x)), y(static_cast<T>(pt.y)) {}
@@ -71,6 +74,11 @@ namespace gfx
 
       PointT operator-() const {
          return PointT(-x, -y);
+      }
+
+      bool operator==(const PointT& other) const {
+         return x == other.x &&
+                y == other.y;
       }
    };
 
